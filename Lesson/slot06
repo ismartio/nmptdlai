@@ -1,1 +1,65 @@
+import pandas as pd
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import metrics
+
+df = pd.read_excel('data_decision_tree.xlsx',sheet_name="data")
+
+df.rename(columns={'Sức khỏe':'SK','Thời tiết':'TT','Kết quả':'KQ'}, inplace=True)
+
+# Tập dữ liệu Input (đặc trưng) và Output (mục tiêu)
+X = df.iloc[:,:-1] # Features
+y = df.iloc[:,-1] # Target
+
+from sklearn.preprocessing import LabelEncoder
+
+encHealth = LabelEncoder()
+X['SK'] = encHealth.fit_transform(X['SK'])
+
+encWeather = LabelEncoder()
+X['TT'] = encWeather.fit_transform(X['TT'])
+
+# Create Decision Tree classifer object
+modelDT = DecisionTreeClassifier(criterion="entropy", max_depth=3)
+
+# Train Decision Tree Classifer
+modelDT = modelDT.fit(X,y)
+
+print(modelDT.classes_)
+
+from sklearn.tree import plot_tree
+import matplotlib.pyplot as plt
+
+#feature_cols = X_train.columns
+feature_cols = X.columns
+plt.figure(figsize=(15,10))
+plot_tree(modelDT, feature_names=feature_cols, 
+          class_names=modelDT.classes_, 
+          fontsize=12, filled=True)
+plt.show()
+
+
+#Predict the response for test dataset
+y_pred = modelDT.predict(X)
+
+# Model Accuracy, how often is the classifier correct?
+print("Accuracy:",metrics.accuracy_score(y, y_pred))
+
+# Tạo Confusion- Metric
+from sklearn.metrics import confusion_matrix
+cf_matrix = confusion_matrix(y, y_pred)
+
+print(cf_matrix)
+
+## Prediction App
+import numpy as np
+health = 'ốm'
+health_scaled = encHealth.transform([health])
+
+weather = 'nắng'
+weather_scaled = encWeather.transform([weather])
+
+feature_sample = np.array([health_scaled[0],weather_scaled[0]])
+
+y_sample_pred = modelDT.predict([feature_sample])
+y_sample_pred
 
